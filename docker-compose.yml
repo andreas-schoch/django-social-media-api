@@ -1,0 +1,49 @@
+version: '3'
+services:
+  app:
+    build:
+      context: .
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8080:8000"
+      - "2222:22"
+    volumes:
+      - ./app:/app
+#      - ./scripts:/scripts
+    networks:
+      - db_nw  # app is the only thing which can talk to the database
+      - web_nw
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:latest
+    env_file: dev.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    networks:
+      - db_nw  # app is the only thing which can talk to the database
+
+#  nginx:
+#    image: nginx:1.17.0
+#    ports:
+#      - "80:80"
+#      - "8000:80"
+#    volumes:
+#      - "./nginx:/etc/nginx/conf.d"
+#    networks:
+#      - web_nw
+
+volumes:
+  dbdata:
+
+
+networks:
+  db_nw:
+    driver: bridge  # bridge would be the default driver even if not specified
+  web_nw:
+    driver: bridge
